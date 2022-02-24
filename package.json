@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "puppeteer": "^13.4.0"
+  },
+  "devDependencies": {
+    "@types/puppeteer": "^5.4.5"
+  }
+}
