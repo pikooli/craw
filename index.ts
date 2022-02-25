@@ -1,12 +1,48 @@
 require("dotenv").config();
+import { Page } from "puppeteer";
 import * as puppeteer from "puppeteer";
 import login from "./login";
 import getProduits from "./getProduits";
 import intercept from "./intercept";
 import getInformations from "./getInformations";
+import saveInformations from "./saveInformations";
 
-const PENDENTIFS = "https://mf-paris.com/categorie-produit/accueil/pendentifs/";
-const headless = false;
+const headless = true;
+const URL = "https://mf-paris.com/categorie-produit/";
+const CATEGORIES = [
+  // "pendentifs",
+  "bracelets",
+  "bagues",
+  "piercing",
+  "cheville",
+  "boucles-d-oreilles",
+  "colliers",
+  "tatouage",
+];
+
+async function processInformation(
+  page: Page,
+  produitUrls: string[],
+  caterogie: string
+) {
+  let informations = [];
+  for (let i = 0; i < produitUrls.length; i++) {
+    const information = await getInformations({
+      page,
+      url: produitUrls[i],
+      folder: caterogie,
+    });
+    informations.push(information);
+  }
+  saveInformations({ datas: informations, folder: "pendentifs" });
+}
+
+async function process(page: Page) {
+  for (let i = 0; i < CATEGORIES.length; i++) {
+    const produitUrls = await getProduits(page, `${URL}${CATEGORIES[i]}/`);
+    await processInformation(page, produitUrls, CATEGORIES[i]);
+  }
+}
 
 (async () => {
   const browser = await puppeteer.launch({ headless });
@@ -14,9 +50,5 @@ const headless = false;
 
   await intercept.intercipeImage(page);
   await login(page);
-  await getInformations(
-    page,
-    "https://mf-paris.com/produit/pendentif-acier-croix-8/"
-  );
-  // const produitUrls = await getProduits(page, PENDENTIFS);
+  await process(page);
 })();
